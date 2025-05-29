@@ -1,4 +1,3 @@
-```markdown
 # 🚀 NXT Smart Logger | Advanced Console Interceptor
 
 ![npm](https://img.shields.io/npm/v/@nxtwebmasters/nxt-smart-logger)
