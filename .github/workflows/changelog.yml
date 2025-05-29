@@ -1,0 +1,24 @@
+name: Changelog
+on:
+  push:
+    branches: [main]
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        uses: mikepenz/release-changelog-builder-action@v3
+        with:
+          configuration: |
+            categories:
+              - title: '🚀 Features'
+                labels: ['feature']
+              - title: '🐛 Bug Fixes'
+                labels: ['bug']
+              - title: '🧹 Maintenance'
+                labels: ['chore']
