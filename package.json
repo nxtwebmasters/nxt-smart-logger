@@ -10,7 +10,7 @@
     "build": "rollup -c",
     "prepublishOnly": "npm run build",
     "release": "standard-version && git push --follow-tags && npm publish",
-    "version": "echo 'new_version=$(node -p \"require(\\\"./package.json\\\").version\")' >> $GITHUB_OUTPUT"
+    "version": "echo \"::set-output name=new_version::$(node -p 'require(\"./package.json\").version')\""
   },
   "repository": {
     "type": "git",

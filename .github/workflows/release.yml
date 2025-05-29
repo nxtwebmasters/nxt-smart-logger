@@ -32,16 +32,14 @@ jobs:
       - name: Version and Publish
         id: version
         run: |
-          # Clean existing tags
-          git tag -d v1.5.0 || true
-          git push --delete origin v1.5.0 || true
-          # Version bump
-          npm version patch -m "chore(release): v%s [skip ci]"
-          # Set output
-          echo "new_version=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
-          # Publish
-          npm publish --access public
-          git push --follow-tags
+            # Delete local tag if exists
+            git tag -d v1.5.0 || true
+            # Delete remote tag if exists
+            git push --delete origin v1.5.0 || true
+            # Proceed with versioning
+            npm version patch -m "chore(release): v%s [skip ci]"
+            npm publish --access public
+            git push --follow-tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
