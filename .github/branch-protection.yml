@@ -1,10 +1,14 @@
 main:
   required_status_checks:
-    strict: true  # Still require CI checks
+    strict: true
     contexts:
       - "build"
       - "test"
-  enforce_admins: false  # Allows admins to bypass
-  required_linear_history: false
-  allow_force_pushes: true  # Dangerous!
-  allow_deletions: true  # Dangerous!
+  required_pull_request_reviews:
+    required_approving_review_count: 0  # Key change - no reviews needed
+    dismiss_stale_reviews: false
+    require_code_owner_reviews: false
+  enforce_admins: false  # Allows you to bypass if needed
+  required_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
