@@ -61,9 +61,9 @@ console.error('Payment failed', error);
   "level": "error",
   "messages": ["Checkout failed", {"code": 400}],
   "timestamp": "2025-05-29T12:34:56.789Z",
-  "url": "https://example.com/checkout",
+  "url": "https://nxtwebmasters.com/nxt-hospital",
   "context": {
-    "userId": "usr-1234",
+    "userId": "mubeen-1234",
     "sessionId": "sess-5678",
     "device": "mobile"
   }
