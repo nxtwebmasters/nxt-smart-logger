@@ -32,9 +32,14 @@ jobs:
       - name: Version and Publish
         id: version
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          npm version minor -m "chore(release): v%s [skip ci]"
+          # Clean existing tags
+          git tag -d v1.5.0 || true
+          git push --delete origin v1.5.0 || true
+          # Version bump
+          npm version patch -m "chore(release): v%s [skip ci]"
+          # Set output
+          echo "new_version=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
+          # Publish
           npm publish --access public
           git push --follow-tags
         env:
