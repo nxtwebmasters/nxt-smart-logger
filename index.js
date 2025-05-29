@@ -1,1 +1,1 @@
-export { ConsoleInterceptor } from './src/ConsoleInterceptor.js';
+export { ConsoleInterceptor } from './src/ConsoleInterceptor.ts';

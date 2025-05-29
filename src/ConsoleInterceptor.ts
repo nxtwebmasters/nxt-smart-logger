@@ -1,6 +1,29 @@
-// src/ConsoleInterceptor.js
+// src/ConsoleInterceptor.ts
+
+declare global {
+  interface Window {
+    dataLayer?: any[];
+  }
+}
+
 export class ConsoleInterceptor {
-  constructor(options = {}) {
+  private logQueue: any[];
+  private batchSize: number;
+  private flushInterval: number;
+  private enableGTM: boolean;
+  private enableServer: boolean;
+  private contextProvider: () => any;
+  private serverLogger: ((logs: any[]) => Promise<void>) | null;
+  private originalConsole: any;
+  
+  constructor(options: {
+    batchSize?: number;
+    flushInterval?: number;
+    enableGTM?: boolean;
+    enableServer?: boolean;
+    contextProvider?: () => any;
+    serverLogger?: (logs: any[]) => Promise<void>;
+  } = {}) {
     this.logQueue = [];
     this.batchSize = options.batchSize || 5;
     this.flushInterval = options.flushInterval || 5000;
@@ -22,7 +45,7 @@ export class ConsoleInterceptor {
   }
 
   overrideConsole() {
-    const intercept = (level) => (...args) => {
+    const intercept = (level: string) => (...args: any) => {
       this.originalConsole[level].apply(console, args);
       this.enqueueLog(level, args);
     };
@@ -34,7 +57,7 @@ export class ConsoleInterceptor {
     console.debug = intercept('debug');
   }
 
-  enqueueLog(level, args) {
+  enqueueLog(level: any, args: any[]) {
     const context = this.contextProvider();
     const log = {
       level,
