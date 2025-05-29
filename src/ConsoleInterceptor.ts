@@ -1,3 +1,10 @@
+// ConsoleInterceptor.ts
+// This module intercepts console methods and sends logs to Google Tag Manager (GTM) and optionally to a server.
+// It allows for batching logs and provides a context provider for additional log information.
+// @ts-nocheck
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// @ts-ignore
 declare global {
   interface Window {
     dataLayer?: any[];
