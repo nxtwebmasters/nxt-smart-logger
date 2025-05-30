@@ -26,21 +26,26 @@ yarn add @nxtwebmasters/nxt-smart-logger
 ## 🚀 Quick Start
 
 ```javascript
-import { SmartLogger } from '@nxtwebmasters/nxt-smart-logger';
+import { ConsoleInterceptor } from '@nxtwebmasters/nxt-smart-logger';
 
-const logger = new SmartLogger({
-  serverEndpoint: '/api/logs',
+const interceptor = new ConsoleInterceptor({
+  enableGTM: true,
+  enableServer: true,
   batchSize: 10,
-  flushInterval: 10000,
+  flushInterval: 5000,
   contextProvider: () => ({
-    userId: getCurrentUserId(),
-    sessionId: getSessionId()
-  })
+    userId: 'USER123',
+    sessionId: 'SESSION456',
+    appVersion: '1.0.0'
+  }),
+  serverLogger: async (logs) => {
+    await fetch('https://yourserver.com/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logs)
+    });
+  }
 });
-
-// All console methods now enhanced!
-console.log('User action completed');
-console.error('Payment failed', error);
 ```
 
 ## ⚙️ Configuration Options
@@ -53,6 +58,7 @@ console.error('Payment failed', error);
 | `enableGtm`        | `boolean`  | `true`  | Push logs to GTM dataLayer |
 | `enableServer`     | `boolean`  | `true`  | Send logs to your server |
 | `contextProvider`  | `function` | `() => ({})` | Provides contextual metadata |
+| `serverLogger`  | `(logs: Log[]) => Promise` | `null` | Function to POST logs to your backend |
 
 ## 📊 Sample Output
 

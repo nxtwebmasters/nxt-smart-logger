@@ -6,15 +6,27 @@
   "module": "dist/index.js",
   "types": "dist/types/ConsoleInterceptor.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/types/ConsoleInterceptor.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build",
-    "release": "standard-version && git push --follow-tags && npm publish",
-    "version": "echo \"::set-output name=new_version::$(node -p 'require(\"./package.json\").version')\""
+    "release": "standard-version && git push --follow-tags && npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nxtwebmasters/nxt-smart-logger.git"
+    "url": "https://github.com/nxtwebmasters/nxt-smart-logger.git"
   },
   "keywords": [
     "logger",
@@ -28,9 +40,6 @@
   ],
   "author": "NxtWebMasters",
   "license": "MIT",
-  "peerDependencies": {
-    "@angular/core": ">=14.0.0"
-  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
