@@ -4,43 +4,51 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'package.json'
-      - 'README.md'
-      - 'rollup.config.js'
+      - "src/**"
+      - "package.json"
+      - "README.md"
+      - "rollup.config.js"
 
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Set Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Build package
         run: npm run build
 
       - name: Version and Publish
-        id: version
+        id: publish
         run: |
-          # Clean existing tags
-          git tag -d v1.5.0 || true
-          git push --delete origin v1.5.0 || true
-          # Version bump
+          # Version bump (patch, change to minor/major if needed)
           npm version patch -m "chore(release): v%s [skip ci]"
-          # Set output
-          echo "new_version=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
-          # Publish
+
+          # Set new version in environment
+          echo "new_version=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_ENV
+
+          # Publish to NPM
           npm publish --access public
+
+          # Push commit and tag
           git push --follow-tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -48,15 +56,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          name: v${{ steps.version.outputs.new_version }}
-          tag_name: v${{ steps.version.outputs.new_version }}
+          name: v${{ env.new_version }}
+          tag_name: v${{ env.new_version }}
           body: |
             ## What's Changed
-            - Updated README with better documentation
-            - Minor improvements and bug fixes
+            - Automated release with version bump
             ### Full Changelog
-            ${{ github.server_url }}/${{ github.repository }}/compare/v${{ steps.version.outputs.old_version }}...v${{ steps.version.outputs.new_version }}
-          draft: false
-          prerelease: false
+            [Compare changes](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
