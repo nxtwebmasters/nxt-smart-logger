@@ -13,12 +13,16 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,54 +33,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install standard-version
-        run: npm install -g standard-version
-
-      - name: Set Git identity
+      - name: Configure Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
 
       - name: Build package
         run: npm run build
 
-      - name: Version and Publish
-        id: publish
+      - name: Bump version and create changelog
+        id: bump-version
         run: |
-          # Check if there are changes that warrant a release
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No changes detected. Skipping release."
-            exit 0
-          fi
+          npx standard-version --release-as patch --skip.tag --skip.commit
+          echo "NEW_VERSION=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_ENV
 
-          # Run standard-version to bump version and generate changelog
-          standard-version --release-as patch --skip.tag --skip.commit
-
-          # Get new version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-
-          # Commit changes (CHANGELOG.md and package.json)
+      - name: Commit version bump
+        if: env.NEW_VERSION != ''
+        run: |
           git add CHANGELOG.md package.json
-          git commit -m "chore(release): v${NEW_VERSION} [skip ci]"
+          git commit -m "chore(release): v${{ env.NEW_VERSION }} [skip ci]"
+          git push
 
-          # Create tag
-          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
-
-          # Publish to NPM
-          npm publish --access public
-
-          # Push commit and tag
-          git push --follow-tags
+      - name: Publish to npm
+        if: env.NEW_VERSION != ''
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Create GitHub Release
-        if: success() && env.new_version != ''
+      - name: Create GitHub release
+        if: env.NEW_VERSION != ''
         uses: softprops/action-gh-release@v1
         with:
-          name: v${{ env.new_version }}
-          tag_name: v${{ env.new_version }}
+          name: v${{ env.NEW_VERSION }}
+          tag_name: v${{ env.NEW_VERSION }}
           body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
