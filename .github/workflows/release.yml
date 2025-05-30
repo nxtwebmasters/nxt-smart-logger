@@ -8,6 +8,7 @@ on:
       - "package.json"
       - "README.md"
       - "rollup.config.js"
+      - "CHANGELOG.md"
 
 jobs:
   release:
@@ -28,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install standard-version
+        run: npm install -g standard-version
+
       - name: Set Git identity
         run: |
           git config user.name "github-actions[bot]"
@@ -39,18 +43,25 @@ jobs:
       - name: Version and Publish
         id: publish
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists. Skipping version bump and publish."
+          # Check if there are changes that warrant a release
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes detected. Skipping release."
             exit 0
           fi
 
-          # Bump version (patch, change to minor/major if needed)
-          npm version patch -m "chore(release): v%s [skip ci]"
+          # Run standard-version to bump version and generate changelog
+          standard-version --release-as patch --skip.tag --skip.commit
 
-          # Set new version in environment
-          echo "new_version=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_ENV
+          # Get new version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+
+          # Commit changes (CHANGELOG.md and package.json)
+          git add CHANGELOG.md package.json
+          git commit -m "chore(release): v${NEW_VERSION} [skip ci]"
+
+          # Create tag
+          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
 
           # Publish to NPM
           npm publish --access public
@@ -61,14 +72,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
+        if: success() && env.new_version != ''
         uses: softprops/action-gh-release@v1
         with:
           name: v${{ env.new_version }}
           tag_name: v${{ env.new_version }}
-          body: |
-            ## What's Changed
-            - Automated release with version bump
-            ### Full Changelog
-            [Compare changes](https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
