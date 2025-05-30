@@ -14,6 +14,7 @@ A sophisticated console interceptor that supercharges your logging capabilities 
 - **⚡ Multiple Destinations** - Send logs to server, GTM, or both simultaneously
 - **🛡️ Error Resilient** - Automatic retries for failed transmissions
 - **🔄 Framework Agnostic** - Works with Angular, React, Vue, or vanilla JS
+- **🧩 Custom Logging** - Define your own log types and send structured events
 
 ## 📦 Installation
 
@@ -46,6 +47,11 @@ const interceptor = new ConsoleInterceptor({
     });
   },
 });
+
+interceptor.addCustomLogMethod('audit');
+interceptor.audit("User logged in", { userId: "u42" });
+
+interceptor.logEvent("user_signup", { plan: "pro", referrer: "ads" });
 ```
 
 ## ⚙️ Configuration Options
@@ -60,38 +66,51 @@ const interceptor = new ConsoleInterceptor({
 | `contextProvider` | `function`                 | `() => ({})` | Provides contextual metadata          |
 | `serverLogger`    | `(logs: Log[]) => Promise` | `null`       | Function to POST logs to your backend |
 
+## 🧪 Intercepts
+
+```bash
+console.log
+console.warn
+console.error
+console.info
+console.debug
+```
+
+## 🧩 Custom Logging Methods
+
+```javascript
+interceptor.customLog("payment", ["Payment failed", { code: 400 }], { severity: "high" });
+
+interceptor.addCustomLogMethod("audit");
+interceptor.audit("User updated profile", { userId: "u88" });
+```
+
+## 📊 Structured GTM Event
+
+```javascript
+interceptor.logEvent("purchase", {
+  productId: "sku123",
+  price: 19.99,
+  currency: "USD",
+});
+```
+
 ## 📊 Sample Output
 
 ```json
 {
+  "type": "log",
   "level": "error",
   "messages": ["Checkout failed", { "code": 400 }],
   "timestamp": "2025-05-29T12:34:56.789Z",
-  "url": "https://nxtwebmasters.com/nxt-hospital",
-  "context": {
-    "userId": "mubeen-1234",
-    "sessionId": "sess-5678",
-    "device": "mobile"
+  "location": "https://nxtwebmasters.com/nxt-hospital",
+  "sessionId": "sess-5678",
+  "userId": "mubeen-1234",
+  "device": "mobile",
+  "meta": {
+    "severity": "high"
   }
 }
-```
-
-# 🧪 Intercepts
-
-```bash
-console.log
-```
-```bash
-console.warn
-```
-```bash
-console.error
-```
-```bash
-console.info
-```
-```bash
-console.debug
 ```
 
 ## 🌐 Browser Support
