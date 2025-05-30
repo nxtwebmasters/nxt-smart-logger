@@ -36,24 +36,27 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Version, Tag & Publish
+      - name: Version and Publish
         id: publish
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          TAG="v$VERSION"
-
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists. Skipping version bump."
-            echo "new_version=$VERSION" >> $GITHUB_ENV
-          else
-            npm version patch -m "chore(release): v%s [skip ci]"
-            NEW_VERSION=$(node -p "require('./package.json').version")
-            echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-            git push --follow-tags
+          
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists. Skipping version bump and publish."
+            exit 0
           fi
+
+          # Bump version (patch, change to minor/major if needed)
+          npm version patch -m "chore(release): v%s [skip ci]"
+
+          # Set new version in environment
+          echo "new_version=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_ENV
 
           # Publish to NPM
           npm publish --access public
+
+          # Push commit and tag
+          git push --follow-tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
