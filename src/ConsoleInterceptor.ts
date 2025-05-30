@@ -1,10 +1,4 @@
-// ConsoleInterceptor.ts
-// This module intercepts console methods and sends logs to Google Tag Manager (GTM) and optionally to a server.
-// It allows for batching logs and provides a context provider for additional log information.
 // @ts-nocheck
-// @ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// @ts-ignore
 declare global {
   interface Window {
     dataLayer?: any[];
@@ -20,7 +14,7 @@ export class ConsoleInterceptor {
   private contextProvider: () => any;
   private serverLogger: ((logs: any[]) => Promise<void>) | null;
   private originalConsole: any;
-  
+
   constructor(options: {
     batchSize?: number;
     flushInterval?: number;
@@ -52,7 +46,7 @@ export class ConsoleInterceptor {
   overrideConsole() {
     const intercept = (level: string) => (...args: any) => {
       this.originalConsole[level].apply(console, args);
-      this.enqueueLog(level, args);
+      this.customLog(level, args);
     };
 
     console.log = intercept('log');
@@ -62,25 +56,56 @@ export class ConsoleInterceptor {
     console.debug = intercept('debug');
   }
 
-  enqueueLog(level: any, args: any[]) {
+  customLog(level: string, messages: any[], meta: Record<string, any> = {}) {
     const context = this.contextProvider();
     const log = {
+      type: 'log',
       level,
-      messages: args,
       timestamp: new Date().toISOString(),
-      url: window.location.href,
-      ...context
+      location: typeof window !== 'undefined' ? window.location.href : '',
+      messages,
+      ...context,
+      meta
     };
 
     this.logQueue.push(log);
 
-    if (this.enableGTM && window.dataLayer) {
+    if (this.enableGTM && typeof window !== 'undefined' && window.dataLayer) {
       window.dataLayer.push({ event: 'console_log', log });
     }
 
     if (this.logQueue.length >= this.batchSize) {
       this.flushLogs();
     }
+  }
+
+  logEvent(eventName: string, payload: Record<string, any>) {
+    const context = this.contextProvider?.() || {};
+    const eventData = {
+      event: eventName,
+      timestamp: new Date().toISOString(),
+      ...context,
+      ...payload
+    };
+
+    if (this.enableGTM && typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push(eventData);
+    }
+  }
+
+  addCustomLogMethod(levelName: string) {
+    if ((this as any)[levelName]) {
+      throw new Error(`Method "${levelName}" already exists on ConsoleInterceptor`);
+    }
+
+    (this as any)[levelName] = (...args: any[]) => {
+      const lastArg = args[args.length - 1];
+      const isMeta = typeof lastArg === 'object' && !Array.isArray(lastArg);
+      const messages = isMeta ? args.slice(0, -1) : args;
+      const meta = isMeta ? lastArg : {};
+
+      this.customLog(levelName, messages, meta);
+    };
   }
 
   setupFlushInterval() {
@@ -96,7 +121,7 @@ export class ConsoleInterceptor {
     try {
       await this.serverLogger(logsToSend);
     } catch (err) {
-      this.logQueue.unshift(...logsToSend);
+      this.logQueue.unshift(...logsToSend); // Re-queue failed logs
     }
   }
 }
