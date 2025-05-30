@@ -26,7 +26,7 @@ yarn add @nxtwebmasters/nxt-smart-logger
 ## 🚀 Quick Start
 
 ```javascript
-import { ConsoleInterceptor } from '@nxtwebmasters/nxt-smart-logger';
+import { ConsoleInterceptor } from "@nxtwebmasters/nxt-smart-logger";
 
 const interceptor = new ConsoleInterceptor({
   enableGTM: true,
@@ -34,38 +34,38 @@ const interceptor = new ConsoleInterceptor({
   batchSize: 10,
   flushInterval: 5000,
   contextProvider: () => ({
-    userId: 'USER123',
-    sessionId: 'SESSION456',
-    appVersion: '1.0.0'
+    userId: "USER123",
+    sessionId: "SESSION456",
+    appVersion: "1.0.0",
   }),
   serverLogger: async (logs) => {
-    await fetch('https://yourserver.com/api/logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(logs)
+    await fetch("https://yourserver.com/api/logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(logs),
     });
-  }
+  },
 });
 ```
 
 ## ⚙️ Configuration Options
 
-| Option              | Type       | Default | Description |
-|---------------------|------------|---------|-------------|
-| `serverEndpoint`    | `string`   | `null`  | Your log ingestion endpoint |
-| `batchSize`        | `number`   | `5`     | Max logs per batch |
-| `flushInterval`    | `number`   | `5000`  | Max wait time (ms) between flushes |
-| `enableGtm`        | `boolean`  | `true`  | Push logs to GTM dataLayer |
-| `enableServer`     | `boolean`  | `true`  | Send logs to your server |
-| `contextProvider`  | `function` | `() => ({})` | Provides contextual metadata |
-| `serverLogger`  | `(logs: Log[]) => Promise` | `null` | Function to POST logs to your backend |
+| Option            | Type                       | Default      | Description                           |
+| ----------------- | -------------------------- | ------------ | ------------------------------------- |
+| `serverEndpoint`  | `string`                   | `null`       | Your log ingestion endpoint           |
+| `batchSize`       | `number`                   | `5`          | Max logs per batch                    |
+| `flushInterval`   | `number`                   | `5000`       | Max wait time (ms) between flushes    |
+| `enableGtm`       | `boolean`                  | `true`       | Push logs to GTM dataLayer            |
+| `enableServer`    | `boolean`                  | `true`       | Send logs to your server              |
+| `contextProvider` | `function`                 | `() => ({})` | Provides contextual metadata          |
+| `serverLogger`    | `(logs: Log[]) => Promise` | `null`       | Function to POST logs to your backend |
 
 ## 📊 Sample Output
 
 ```json
 {
   "level": "error",
-  "messages": ["Checkout failed", {"code": 400}],
+  "messages": ["Checkout failed", { "code": 400 }],
   "timestamp": "2025-05-29T12:34:56.789Z",
   "url": "https://nxtwebmasters.com/nxt-hospital",
   "context": {
@@ -76,11 +76,29 @@ const interceptor = new ConsoleInterceptor({
 }
 ```
 
+# 🧪 Intercepts
+
+```bash
+console.log
+```
+```bash
+console.warn
+```
+```bash
+console.error
+```
+```bash
+console.info
+```
+```bash
+console.debug
+```
+
 ## 🌐 Browser Support
 
 | ![Chrome](https://raw.githubusercontent.com/alrra/browser-logos/main/src/chrome/chrome_48x48.png) | ![Edge](https://raw.githubusercontent.com/alrra/browser-logos/main/src/edge/edge_48x48.png) | ![Firefox](https://raw.githubusercontent.com/alrra/browser-logos/main/src/firefox/firefox_48x48.png) | ![Safari](https://raw.githubusercontent.com/alrra/browser-logos/main/src/safari/safari_48x48.png) |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| Latest ✔                                                                                         | Latest ✔                                                                                    | Latest ✔                                                                                           | Latest ✔                                                                                         |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Latest ✔                                                                                          | Latest ✔                                                                                    | Latest ✔                                                                                             | Latest ✔                                                                                          |
 
 ## 🤝 Contributing
 
