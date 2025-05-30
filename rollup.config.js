@@ -13,17 +13,30 @@ export default {
     {
       file: 'dist/index.cjs.js',
       format: 'cjs',
-      sourcemap: true
+      sourcemap: true,
+      exports: 'auto'
     }
   ],
   plugins: [
-    resolve(),
-    commonjs(),
+    resolve({
+      browser: true,
+      preferBuiltins: false
+    }),
+    commonjs({
+      include: /node_modules/,
+      requireReturnsDefault: 'auto'
+    }),
     typescript({
       tsconfig: './tsconfig.json',
       useTsconfigDeclarationDir: true,
-      clean: true
+      clean: true,
+      tsconfigOverride: {
+        compilerOptions: {
+          declaration: true,
+          declarationDir: 'dist/types'
+        }
+      }
     })
   ],
-  external: [] // Keep it empty unless you need to mark frameworks (e.g., Angular) as peer
+  external: ['@angular/core']
 };
