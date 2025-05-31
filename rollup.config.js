@@ -1,42 +1,24 @@
-import typescript from 'rollup-plugin-typescript2';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import typescript from "rollup-plugin-typescript2";
 
 export default {
-  input: 'src/ConsoleInterceptor.ts',
+  input: "src/ConsoleInterceptor.ts",
   output: [
     {
-      file: 'dist/index.js',
-      format: 'esm',
-      sourcemap: true
+      file: "dist/index.js",
+      format: "esm", // ES Module format
+      sourcemap: true,
     },
     {
-      file: 'dist/index.cjs.js',
-      format: 'cjs',
+      file: "dist/index.cjs.js",
+      format: "cjs", // CommonJS format
       sourcemap: true,
-      exports: 'auto'
-    }
+    },
   ],
   plugins: [
-    resolve({
-      browser: true,
-      preferBuiltins: false
-    }),
-    commonjs({
-      include: /node_modules/,
-      requireReturnsDefault: 'auto'
-    }),
     typescript({
-      tsconfig: './tsconfig.json',
+      tsconfig: "./tsconfig.json",
       useTsconfigDeclarationDir: true,
-      clean: true,
-      tsconfigOverride: {
-        compilerOptions: {
-          declaration: true,
-          declarationDir: 'dist/types'
-        }
-      }
-    })
+    }),
   ],
-  external: ['@angular/core']
+  external: ["@angular/core"], // Mark peer dependencies as external
 };

@@ -30,8 +30,6 @@ yarn add @nxtwebmasters/nxt-smart-logger
 import { ConsoleInterceptor } from "@nxtwebmasters/nxt-smart-logger";
 
 const interceptor = new ConsoleInterceptor({
-  enableGTM: true,
-  enableServer: true,
   batchSize: 10,
   flushInterval: 5000,
   contextProvider: () => ({
@@ -48,21 +46,17 @@ const interceptor = new ConsoleInterceptor({
   },
 });
 
-interceptor.addCustomLogMethod('audit');
-interceptor.audit("User logged in", { userId: "u42" });
-
-interceptor.logEvent("user_signup", { plan: "pro", referrer: "ads" });
+// All console methods now enhanced!
+console.log("User action completed");
+console.error("Payment failed", error);
 ```
 
 ## ⚙️ Configuration Options
 
 | Option            | Type                       | Default      | Description                           |
 | ----------------- | -------------------------- | ------------ | ------------------------------------- |
-| `serverEndpoint`  | `string`                   | `null`       | Your log ingestion endpoint           |
 | `batchSize`       | `number`                   | `5`          | Max logs per batch                    |
 | `flushInterval`   | `number`                   | `5000`       | Max wait time (ms) between flushes    |
-| `enableGtm`       | `boolean`                  | `true`       | Push logs to GTM dataLayer            |
-| `enableServer`    | `boolean`                  | `true`       | Send logs to your server              |
 | `contextProvider` | `function`                 | `() => ({})` | Provides contextual metadata          |
 | `serverLogger`    | `(logs: Log[]) => Promise` | `null`       | Function to POST logs to your backend |
 
@@ -76,39 +70,18 @@ console.info
 console.debug
 ```
 
-## 🧩 Custom Logging Methods
-
-```javascript
-interceptor.customLog("payment", ["Payment failed", { code: 400 }], { severity: "high" });
-
-interceptor.addCustomLogMethod("audit");
-interceptor.audit("User updated profile", { userId: "u88" });
-```
-
-## 📊 Structured GTM Event
-
-```javascript
-interceptor.logEvent("purchase", {
-  productId: "sku123",
-  price: 19.99,
-  currency: "USD",
-});
-```
-
 ## 📊 Sample Output
 
 ```json
 {
-  "type": "log",
   "level": "error",
   "messages": ["Checkout failed", { "code": 400 }],
   "timestamp": "2025-05-29T12:34:56.789Z",
-  "location": "https://nxtwebmasters.com/nxt-hospital",
-  "sessionId": "sess-5678",
-  "userId": "mubeen-1234",
-  "device": "mobile",
-  "meta": {
-    "severity": "high"
+  "url": "https://nxtwebmasters.com/nxt-hospital",
+  "context": {
+    "userId": "usr-1234",
+    "sessionId": "sess-5678",
+    "device": "mobile"
   }
 }
 ```
