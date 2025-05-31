@@ -4,17 +4,18 @@
 ![license](https://img.shields.io/npm/l/@nxtwebmasters/nxt-smart-logger)
 ![downloads](https://img.shields.io/npm/dm/@nxtwebmasters/nxt-smart-logger)
 
-A sophisticated console interceptor that supercharges your logging capabilities with server integration, GTM support, and contextual logging for modern web applications.
+A sophisticated console interceptor that supercharges your logging capabilities with server integration, GTM support, context/meta injection, custom log levels, and reusable structured logs for modern applications.
 
 ## ✨ Features
 
-- **🔁 Batched Log Transmission** - Optimize network calls with configurable batching
-- **📊 GTM Integration** - Seamless integration with Google Tag Manager
-- **👤 Contextual Logging** - Attach user/session context automatically
-- **⚡ Multiple Destinations** - Send logs to server, GTM, or both simultaneously
-- **🛡️ Error Resilient** - Automatic retries for failed transmissions
-- **🔄 Framework Agnostic** - Works with Angular, React, Vue, or vanilla JS
-- **🧩 Custom Logging** - Define your own log types and send structured events
+* **🔀 Batched Log Transmission** - Optimize network calls with configurable batching
+* **📊 GTM Integration** - Seamless integration with Google Tag Manager
+* **👤 Contextual Logging** - Attach user/session context automatically
+* **⚡ Multiple Destinations** - Send logs to server, GTM, or both simultaneously
+* **🛡️ Error Resilient** - Automatic retries for failed transmissions
+* **🔄 Framework Agnostic** - Works with Angular, React, Vue, or vanilla JS
+* **🧹 Custom Logging** - Define your own log types and structured events
+* **✨ Extendable API** - Inject tags, meta, or override per log call
 
 ## 📦 Installation
 
@@ -26,7 +27,7 @@ yarn add @nxtwebmasters/nxt-smart-logger
 
 ## 🚀 Quick Start
 
-```javascript
+```ts
 import { ConsoleInterceptor } from "@nxtwebmasters/nxt-smart-logger";
 
 const interceptor = new ConsoleInterceptor({
@@ -46,45 +47,162 @@ const interceptor = new ConsoleInterceptor({
   },
 });
 
-// All console methods now enhanced!
-console.log("User action completed");
-console.error("Payment failed", error);
+const logger = interceptor.getLogger();
+logger.info("User logged in");
+logger.withTags(["auth"]).warn("Login attempt");
+logger.withContext({ feature: "search" }).error("Search failed");
+logger.withMeta({ region: "us-east-1" }).debug("Region-specific check");
+logger.withAll({
+  tags: ["api"],
+  context: { feature: "checkout" },
+  meta: { version: "2.1.0" },
+}).error("API timeout");
+
+interceptor.setContext({ userId: "ADMIN" });
 ```
 
 ## ⚙️ Configuration Options
 
-| Option            | Type                       | Default      | Description                           |
-| ----------------- | -------------------------- | ------------ | ------------------------------------- |
-| `batchSize`       | `number`                   | `5`          | Max logs per batch                    |
-| `flushInterval`   | `number`                   | `5000`       | Max wait time (ms) between flushes    |
-| `contextProvider` | `function`                 | `() => ({})` | Provides contextual metadata          |
-| `serverLogger`    | `(logs: Log[]) => Promise` | `null`       | Function to POST logs to your backend |
+| Option            | Type                      | Default      | Description                           |
+| ----------------- | ------------------------- | ------------ | ------------------------------------- |
+| `batchSize`       | `number`                  | `5`          | Max logs per batch                    |
+| `flushInterval`   | `number`                  | `5000`       | Max wait time (ms) between flushes    |
+| `contextProvider` | `() => object`            | `() => ({})` | Provides dynamic context              |
+| `serverLogger`    | `(logs) => Promise<void>` | `null`       | Function to POST logs to your backend |
+| `customLevels`    | `string[]`                | `[]`         | Custom log levels (e.g. audit, track) |
+| `filterLevels`    | `string[]`                | all levels   | Log levels to capture from console    |
+| `generateTraceId` | `() => string`            | uuidv4       | Custom trace ID generator             |
 
-## 🧪 Intercepts
-
-```bash
-console.log
-console.warn
-console.error
-console.info
-console.debug
-```
-
-## 📊 Sample Output
+## 🧩 Structured Log Format
 
 ```json
 {
-  "level": "error",
-  "messages": ["Checkout failed", { "code": 400 }],
-  "timestamp": "2025-05-29T12:34:56.789Z",
-  "url": "https://nxtwebmasters.com/nxt-hospital",
+  "level": "warn",
+  "timestamp": "2025-05-31T12:34:56.789Z",
+  "message": "Login failed {\"code\":401}",
+  "tags": ["auth"],
   "context": {
-    "userId": "usr-1234",
-    "sessionId": "sess-5678",
-    "device": "mobile"
+    "userId": "USER123",
+    "sessionId": "SESSION456",
+    "feature": "login"
+  },
+  "meta": {
+    "url": "https://nxtwebmasters.com/app",
+    "userAgent": "Mozilla/5.0...",
+    "traceId": "uuid-123",
+    "sessionId": "SESSION456"
+  },
+  "data": {
+    "code": 401
   }
 }
 ```
+
+# 🔌 Integration Examples — NXT Smart Logger
+
+Here’s how to plug `@nxtwebmasters/nxt-smart-logger` into various environments:
+
+---
+
+## ⚛️ React Setup
+
+```ts
+// logger.ts
+import { ConsoleInterceptor } from '@nxtwebmasters/nxt-smart-logger';
+
+export const interceptor = new ConsoleInterceptor({
+  contextProvider: () => ({
+    userId: localStorage.getItem('userId'),
+    sessionId: sessionStorage.getItem('sessId')
+  }),
+  serverLogger: async (logs) => {
+    await fetch('/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logs),
+    });
+  }
+});
+
+export const logger = interceptor.getLogger();
+```
+
+```tsx
+// App.tsx
+import { logger } from './logger';
+
+function App() {
+  useEffect(() => {
+    logger.info('App mounted');
+  }, []);
+  return <h1>Welcome</h1>;
+}
+```
+
+---
+
+## 🧩 Vue Setup
+
+```ts
+// logger.ts
+import { ConsoleInterceptor } from '@nxtwebmasters/nxt-smart-logger';
+
+const interceptor = new ConsoleInterceptor({
+  contextProvider: () => ({ userId: 'vue-user', role: 'admin' })
+});
+
+export const logger = interceptor.getLogger();
+```
+
+```vue
+<script setup>
+import { onMounted } from 'vue';
+import { logger } from './logger';
+
+onMounted(() => {
+  logger.info('Vue component mounted');
+});
+</script>
+```
+
+---
+
+## 🖥️ Node.js Setup (e.g., CLI apps or SSR)
+
+```ts
+import { ConsoleInterceptor } from '@nxtwebmasters/nxt-smart-logger';
+
+const interceptor = new ConsoleInterceptor({
+  enableGTM: false,
+  enableServer: true,
+  contextProvider: () => ({ env: 'node', pid: process.pid }),
+  serverLogger: async (logs) => {
+    console.log('Sending logs to API:', logs);
+  }
+});
+
+const logger = interceptor.getLogger();
+logger.info('CLI started');
+```
+
+---
+
+Use the logger the same way across all frameworks:
+
+```ts
+logger.error('Something went wrong', { details: '...' })
+logger.withTags(['startup']).info('App ready')
+```
+
+---
+
+## 🌍 Works Anywhere
+
+* React (hooks, SSR, client)
+* Vue 2/3 (setup API or options API)
+* Vanilla JS / CDN
+* Node.js (CLI, workers, Express)
+
 
 ## 🌐 Browser Support
 
